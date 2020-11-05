@@ -17,7 +17,7 @@ class Flux(Base):
     id = sqlalchemy.Column(sqlalchemy.BigInteger(), primary_key=True)
     in_flux = sqlalchemy.Column(sqlalchemy.String(256), nullable=False)
     out_flux = sqlalchemy.Column(sqlalchemy.String(256), nullable=False)
-    infos = out_flux = sqlalchemy.Column(sqlalchemy.String(1024), nullable=True)
+    infos = sqlalchemy.Column(sqlalchemy.String(1024), nullable=True)
 
 engine = sqlalchemy.create_engine("mysql+pymysql://obsuser:cestvraimenthistoirededirequoi@localhost/obs")
 

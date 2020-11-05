@@ -1,11 +1,24 @@
+import argparse
+
 import bdd
 import subprocess
+
 
 IN_DOMAIN = "rtmp://obs.espci.fr"
 OUT_DOMAIN = "rtmp://10.0.0.1"
 
-NGINX_CONFIG_PATH = "/etc.nginx/nginx.conf"
+NGINX_CONFIG_PATH = "/etc/nginx/nginx.conf"
 
+parser = argparse.ArgumentParser()
+parser.add_argument("flux_entrant")
+parser.add_argument("streamkey")
+parser.add_argument("desc", nargs="?")
+args = parser.parse_args()
+
+relay_flux(args.flux_entrant, args.streamkey, args.desc)
+
+
+#Fonctions utilisées
 def retrieve_flux(flux):
     """
     Détecte si un flux out (en local) est lancé, renvoie son adresse locale si oui, None sinon
@@ -20,8 +33,10 @@ def retrieve_flux(flux):
 
 def relay_flux(flux_entrant, streamkey, desc=None):
     #Création de l'objet correspondant au stream flux_entrant
-    #flux entrant : rtmp://obs.espci.fr/annee/enseignant/live
+    #Exemple de flux entrant : rtmp://obs.espci.fr/annee/enseignant/live
     #Ajouter le nouveau flux en db
+
+    assert not retrieve_flux(flux_entrant), "Erreur : flux déjà existant" #Vérification que le flux n'est pas déjà existant
 
     flux_sortant = flux_entrant.replace(IN_DOMAIN, OUT_DOMAIN) + streamkey #Changement de domaine pour passer de l'exté vers le local
     flux = Flux(id, flux_entrant, flux_sortant, desc)   #Nouvel objet de type flux
@@ -29,6 +44,12 @@ def relay_flux(flux_entrant, streamkey, desc=None):
     session.add(flux)
     session.commit()
 
+    refresh_flux()
+
+    return
+
+
+def refresh_flux():
     #Rebuild le fichier config nginx
 
     fluz = session.query(Flux).all()
@@ -59,10 +80,6 @@ def relay_flux(flux_entrant, streamkey, desc=None):
     with open(NGINX_CONFIG_PATH, "w") as config_file:
         config_file.write(config)
 
-    subprocess.call("sudo systemctl restart nginx")
+    subprocess.call("sudo systemctl restart nginx") #relance Nginx
 
-
-
-    return fluz
-
-    #return un truc qui dit si ça s'est bien passé
+    return
