@@ -53,21 +53,18 @@ def refresh_flux():
         base_file = config_file.read()
         base_file = base_file[:base_file.find(config)]
 
+    config += ("server {\n"
+               "\tlisten obs.espci.fr:1935;\n"
+               "\tchunk_size 4096;\n\n")
 
     for flux in fluz:   #on remet tous les streams en cours plus celui qui a été ajouté
-        new_config = ("server {\n"
-                    "\tlisten obs.espci.fr:1935;\n"
-                    "\tchunk_size 4096;\n"
-                    f"\tapplication pullfrom{flux.id} {{\n"
-                    "\t\t live on;\n"
-                    "\t\t record off;\n"
-                    f"\t\t pull {flux.in_flux} live=1;\n"
-                    "\t\t}\n"
-                    f"\tapplication pushto{flux.id} {{\n"
-                    "\t\t live on;\n"
-                    "\t\t record off;\n"
-                    f"\t\t push {flux.out_flux};\n"
-                    "\t\t}\n")
+        new_config = (f"\tapplication pullfrom{flux.id} {{\n"
+                      "\t\t live on;\n"
+                      "\t\t record off;\n"
+                      f"\t\t pull {flux.in_flux} live=1;\n"
+                      f"\t\t push {flux.out_flux};\n"
+                      "\t\t}\n")
+
         config += new_config
         config += "}\n\n"
 
@@ -79,8 +76,8 @@ def refresh_flux():
     with open(NGINX_CONFIG_PATH, "w") as config_file:
         config_file.write(base_file + config)
 
-    subprocess.call("sudo /usr/local/nginx/sbin/nginx", shell=True) #relance Nginx
-
+    subprocess.call("sudo /usr/local/nginx/sbin/nginx -s stop", shell=True) #relance Nginx
+    #subprocess.call("sudo /usr/local/nginx/sbin/nginx -s stop", shell=True)
     return
 
 #A l'exécution
