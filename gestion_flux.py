@@ -72,6 +72,7 @@ def refresh_flux():
 
     print("Nouveau fichier de config = \n" + config) #du log
 
+
     #Modifier le fichier de config nginx
     with open(NGINX_CONFIG_PATH, "w") as config_file:
         config_file.write(base_file + config)
